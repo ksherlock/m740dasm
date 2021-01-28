@@ -120,6 +120,8 @@ class Printer(object):
             d['{rel}'] = self.format_rel_address(inst.rel_addr)
         if inst.zp_addr is not None:
             d['{zp}'] = self.format_zp_address(inst.zp_addr)
+        if inst.sp_addr is not None:
+            d['{sp}'] = self.format_zp_address(inst.sp_addr)
 
         disasm = inst.disasm_template
         for k, v in d.items():

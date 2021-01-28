@@ -48,7 +48,7 @@ class Instruction(object):
     _disasm_formats = (
         ('opcode',    '{opc}', '0x%02x'),
         ('zp_addr',   '{zp}',  '0x%02x'),
-        ('sp_addr',   '{sp}',  '0xff%02x'),
+        ('sp_addr',   '{sp}',  '0x1f%02x'),
         ('abs_addr',  '{abs}', '0x%04x'),
         ('rel_addr',  '{rel}', '0x%04x'),
         ('immediate', '{imm}', '0x%02x'),
@@ -62,7 +62,7 @@ class Instruction(object):
 
     @property
     def target_address(self):
-        for addr in (self.rel_addr, self.abs_addr):
+        for addr in (self.rel_addr, self.abs_addr, self.sp_addr):
             if addr is not None:
                 return addr
 
@@ -112,7 +112,7 @@ def disassemble_inst(memory, pc):
         inst.zp_addr = operands[1]
 
     elif inst.addr_mode == AddressModes.SpecialPage:
-        inst.sp_addr = operands[0]
+        inst.sp_addr = operands[0] | 0x1f00;
 
     elif inst.addr_mode in (AddressModes.Relative,
                             AddressModes.AccumulatorBitRelative):
