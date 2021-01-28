@@ -8,7 +8,7 @@ class SymbolTable(object):
 
     def generate(self, memory, start_address):
         self.generate_code_symbols(memory, start_address)
-        #self.generate_data_symbols(memory, start_address)
+        self.generate_data_symbols(memory, start_address)
 
     def generate_code_symbols(self, memory, start_address):
         for address in range(start_address, len(memory)):
@@ -22,6 +22,21 @@ class SymbolTable(object):
                     self.symbols[address] = ('lab_%04x' % address, '')
 
     def generate_data_symbols(self, memory, start_address):
+
+
+        for address, inst in memory.iter_instructions():
+            if inst.addr_mode not in (AddressModes.Absolute, 
+                AddressModes.AbsoluteX,
+                AddressModes.AbsoluteY):
+                continue
+            if inst.address in self.symbols:
+                continue
+            # if memory.is_single_byte_or_start_of_multibyte(inst.address):
+            self.symbols[inst.address] = ('mem_%04x' % inst.address, '')
+
+        return 
+
+
         # symbols are always generated for direct or extended address r/w
         for address, inst in memory.iter_instructions():
             if inst.addr_mode not in (AddressModes.Extended,
@@ -157,4 +172,36 @@ M3886_SYMBOLS = {
     0xffe0: ("INT_FFE0", "INT4"),
     0xffde: ("INT_FFDE", "A-D converter / Key-on wake-up"),
     0xffdc: ("INT_BRK",  "BRK instruction interrupt"),
+}
+
+
+M50740_SYMBOLS = {
+    # i/o
+    0x00e0: ("P0",      "Port P0"),
+    0x00e1: ("P0D",     "Port P0 direction register"),
+    0x00e2: ("P1",      "Port P1"),
+    0x00e3: ("P1D",     "Port P1 direction register"),
+    0x00e4: ("P2",      "Port P2"),
+    0x00e5: ("P2D",     "Port P2 direction register"),
+    #0x00e6: ("P3",         "Port P3"),
+    #0x00e7: ("P3D",     "Port P3 direction register"),
+    0x00e8: ("P3",         "Port P3"),
+    0x00e9: ("P3D",     "Port P3 direction register"),
+
+    0x00f9: ("PRE12",   "Prescaler 12"),
+    0x00fa: ("T1",      "Timer 1"),
+    0x00fb: ("T2",      "Timer 2"),
+    # 0x0023: ("TM",        "Timer XY mode register"),
+    0x00fc: ("PREX",    "Prescaler X"),
+    0x00fd: ("TX",      "Timer X"),
+    0x00fe: ("ICON",    "Interrupt control register"),
+    0x00ff: ("TCON",    "Timer control register"),
+
+    # vectors
+    0x1ffe: ("INT_RESET",    "Reset vector"),
+    0x1ffc: ("INT_CNTR", "/CNTR"),
+    0x1ffa: ("INT_TIMER_X", "Timer X"),
+    0x1ff8: ("INT_TIMER_1", "Timer 1"),
+    0x1ff6: ("INT_TIMER_2", "Timer 2"),
+    0x1ff4: ("INT_INT", "/INT"),
 }

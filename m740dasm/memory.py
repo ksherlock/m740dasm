@@ -1,7 +1,7 @@
 
 class Memory(object):
     def __init__(self, rom):
-        self.contents = bytearray(0x10000 - len(rom)) + bytearray(rom)
+        self.contents = bytearray(0x2000 - len(rom)) + bytearray(rom)
         self.instructions = {}
         self.types = {}
         self.annotations = {}
@@ -24,7 +24,7 @@ class Memory(object):
         return self.contents[address]
 
     def read_word(self, address):
-        high = self.contents[(address + 1) & 0xFFFF]
+        high = self.contents[(address + 1) & 0x1FFF]
         low = self.contents[address]
         return (high << 8) + low
 
@@ -35,7 +35,7 @@ class Memory(object):
 
         # ensure the memory locations are only assigned to one instruction
         for i in range(inst_len):
-            addr = (address + i) & 0xFFFF
+            addr = (address + i) & 0x1FFF
             if not self.is_unknown(addr):
                 msg = "Attempt to overwrite non-unknown at %04x"
                 raise Exception(msg % addr)
@@ -43,7 +43,7 @@ class Memory(object):
         # store instruction and mark its locations
         self.instructions[address] = inst
         for i in range(inst_len):
-            addr = (address + i) & 0xFFFF
+            addr = (address + i) & 0x1FFF
             if addr == address:
                 loc_type = LocationTypes.InstructionStart
             else:
@@ -62,11 +62,11 @@ class Memory(object):
 
     def set_vector(self, address):
         self.types[address] = LocationTypes.VectorStart
-        self.types[(address + 1) & 0xFFFF] = LocationTypes.VectorContinuation
+        self.types[(address + 1) & 0x1FFF] = LocationTypes.VectorContinuation
 
     def get_vector(self, address):
         high = self.contents[address]
-        low = self.contents[(address + 1) & 0xFFFF]
+        low = self.contents[(address + 1) & 0x1FFF]
         return (high << 8) + low
 
     def iter_vectors(self, address=0):
@@ -83,7 +83,7 @@ class Memory(object):
 
     def is_unknown(self, address, length=1):
         for i in range(length):
-            if self.types[(address + i) & 0xFFFF] != LocationTypes.Unknown:
+            if self.types[(address + i) & 0x1FFF] != LocationTypes.Unknown:
                 return False
         return True
 
@@ -122,6 +122,7 @@ class Memory(object):
         self.annotations[address].add(LocationAnnotations.JumpTarget)
 
     def annotate_call_target(self, address):
+        if address == None: return
         self.annotations[address].add(LocationAnnotations.CallTarget)
 
     def annotate_illegal_instruction(self, address):
